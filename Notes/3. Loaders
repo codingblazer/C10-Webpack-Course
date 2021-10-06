@@ -1,0 +1,51 @@
+Now a very imp requirement in React or modern frameworks is to import the css files into the javascript file so as to keep everything related to component inside the component with full abstraction. Thus, it is needed for webpack to allow these CSS. 
+
+See (6)
+We will create vanilla js component and write render function (this render function is just normal function with name render and we could have named anything else as well) inside component class to create a button and export this button class component. We have also created css for this inside separate file called hello-world-button.css and imported this inside the js file like people usually organize their code in frameworks these days. 
+Now inside index.js, we are creating object of this class and calling the render function of this class.
+
+Now webpack doesn't know how to import this file and let's teach webpack how to do this. Let's add another rule and in this rule matches test will be for css files. Now asset module was present inside the webpack out of the box but loaders are not. For loaders, we will use the keyword 'use' instead of 'type' we used in asset module => Inside we specify the list of loaders webpack has to use for this. We have defined the 'style-loader' and 'css-loader'.'css-loader' just reads the file as css and interpret it and does nothing else. 'style-loader' takes this loaded css and bundles it inside the bundled js file using <style tag>
+Now unlike asset module which are inside webpack, we have to install the loaders. Every loader comes as npm package and we can install them as :
+'npm install css-loader style-loader --save-dev'
+We can run build and things will work fine. 
+
+Handling Sass (See 7)
+---------------------
+We will modify css file to sass and import it => In webpack, for this to work, we will need another loader sass-loader which converts to scss files to css files and then css loader and then style loader like before. Also we have to install sass loader using npm. 
+
+Using Babel with Webpack Config
+--------------------------------
+Now javascript does its updates in form of ECMA and all browsers are not able to work with newest version of javascript instantly and thus might take year to support this new JS features and even webpack might take time to support them => but we will usually write code in latest js => babel helps in converting this new JS code internally into old JS code that browsers support and hence this is solved. It is used almost in every JS project.
+
+Babel from scratch (https://blog.jakoblind.no/babel-preset-env/) => see (8) 
+----------------------------------------------------------------------------
+=> we have created babel-test repo and npm init for that to create package.json and installed babel-core and babel-cli through which we can run the babel command from terminal => 'npm install --save-dev @babel/core @babel/cli' =>  input.js has arrow function which is part of ES6 => we want to transpile this to ES5 supported by most of the browsers => 
+If we run babel command to transpile this and give output:
+npx babel input.js --out-file output.js => output will be same as input BECAUSE BABEL DOES NOT DO ANYTHING OUT OF THE BOX. but Babel is built on presets and plugins and plugins does all the work without which babel does nothing. 
+
+BABEL PLUGINS => Babel plugins are different from webpack plugins and webpack plugins we will learn later. Now every babel plugin has a npm package which we have to install and to ask babel to use this plugin, we can specify it in babelrc file which babel uses to configure it => 
+
+'npm install --save-dev @babel/plugin-transform-arrow-functions' => install plugin from npm needed for transpiling arrow functions of ES6 to ES5
+
+Inside babelrc file, we are givving this installed plugin for babel to use. Now running babel from terminal should give output in ES5.
+
+BABEL PRESETS => Now there can be many features from ES6 or even ES10 like arrow functions, etc and installing plugin for each of them will be time consuming => preset is collection of plugins bundled together which are commonly used. There are 4 babel presets and then there are presets in community from people like us that can be used. The 4 presets from babel are: @babel/preset-env, @babel/preset-flow,@babel/preset-react,@babel/preset-typescript => @babel/preset-env bundles all plugins for latest ECMA, let say ECMA 10 to ECMA 6 script that are used to transpile them to ES5 => We can just install this preset once from npm and we are done. Then we can refer this installed preset in our babelrc file => 
+{
+  "presets": ["@babel/preset-env"]
+}
+
+Now these presets have a large number of plugins to support 100% of the browsers and thus some browsers even require more transpiling and thus output code using this would become very big. But usually supporting 99% of browsers is fine which will reduce plugins list inside preset and final output => We can specify that in .browserlistrc file which is by default read by the preset-env preset and we can give browser rules like:
+>0.25% => only support browsers with more than this market share
+not ie all => all browsers except Internet explorer
+
+You can see all plugins inside preset env here: https://github.com/babel/babel/blob/master/packages/babel-preset-env/src/available-plugins.js
+
+Using Babel with webpack
+------------------------
+See (9) => See component file where we have used class member which is not allowed and even not present in any of the latest ECMA script but might be added in future but we want to use it for better organization and since it is not in ECMA 5, we know this is not supported by most browsers yet as well. If we do webpack build, it will throw error that it needs loader to load this JS file as some of the things are not understood by webpack yet which are these features. Thus for webpack to understand this, we will pass it through babel-loader first which only passes this class member code through babel command which we were running from cli above and we know babel does nothing on its own. Thus we have to use some babel plugin along with this loader to make it work and transpile to ES5 => Now if you see config, we have given preset-env preset but that is only for transpilation from EC-latest to EC6 to -> ES5 => this will not help but see how we can give it to babel since we wont be using babelrc in this case and specify that config here itself. Thus we have given plugin to babel which transpiles this class member code to ES5 =>
+
+Webpack will pass the class member code through all rules and find js rule and pass through babel loader which will run babel command on this class code and apply babel plugin for class code and thus output will be EC5 code => this EC5 code is picked by webpack and placed in bundle.js which is understood by most of the browsers. 
+
+Also see we have excluded node modules because they would already be in EC5 code.
+
+TODO, write about npmrc file etc and why npm install connects to avalara npm everytime 

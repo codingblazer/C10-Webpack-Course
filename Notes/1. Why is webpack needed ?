@@ -1,0 +1,34 @@
+Why is webpack needed ?
+
+Early web => Earlier in web, we used to have single html file and all the css files in head and js files in body referring via tag. The order in which you give your javascript files used to matter as if all other js files depend on common.js, then it has to be on top otherwise order would break.
+Gulp and Grunt => these used to package all js files into one but was not able to figure out the dependencies on their own.
+Require.js => this was able to figure out the dependencies on its own but is not as powerful as webpack which gives lot other features like plugins, etc
+Webpack => Static module bundler for JS apps => one tool for managing all your js, css, assets, etc code in one place. It goes through every file in your module and builds a dependency graph recursively out of it to figure out the dependencies and packages them into one ore more bundles i.e. one bundle for css, one for js, etc. While going through files, it can work with js, typescript, css, sass, less, images, and mmuch more. Now we can write our js files and when integrating, webpack is doing it for us and no issues like order of files, etc. In the same html we talked about in early web, webpack will insert one js file and one css file bundle and we dont need to worry about anything.
+
+Example:
+See (1) => We have index.html and in src, we have js files which we are mentioning in index.html => If order of this is opp => it will break. It is just 2 files but we can have 100 of js files meaning, adding new file we have to find its correct position based on dependency + if there are many libraries being used, js tag for them as well needs to be managed. 
+
+Installing and Running Webpack
+-------------------------------
+ => Before this, let's create package.json which keeps track of all the dependencies in our project. This way someone else working on the project can install all those dependencies with 'npm install'. To create it, we can run:
+'npm init -y' => creates package.json => we will install webpack which is core of webpack and webpack cli which used to issue commands to webpack.
+
+'npm install webpack webpack-cli --save-dev' => will install webpack and web-cli in dev mode. 
+
+Now we can remove the helloWorld.js from index.html and add it as import in index.js + export the helloWorld function => export default is part of ECMSscript 6 and webpack understands this version of javascript. We can run the webpack as:
+
+'npx webpack' => Here we have not provided custom config for webpack which is recommended because other features we can use and for storing the configuration for reference. In such case, webpack 4,5 uses default config in that case. Now in output logs you will main.js being created inside the dist named folder (we can customize the name of folder using customized config) => Inside this you will see webpack has not just bundled the js together but also highly optimsed it by doing substitution and function is not even seen in this code.
+
+'npx webpack stats --detailed' => shows the process of webpack => Webpack selected src/index.js as the entrypoint by default because it wasnt given any entrypoint file, so it went inside src and selected index.js as entrypoiny. Entrypoint file is where webpack starts from and this usually has all the dependencies in form of imports.
+
+See (2) folder for code of above. 
+
+Custom Webpack Configuration
+----------------------------
+Default name for this config file is webpack.config.js -> we can choose a different filename but lets go with default for now and create it. We start by exporting this config object => entry tells the file where webpack should start the build process from. output is the name of file which is bundled and the path of it which has to be absolute path. Thus we have used path lib for that. Now any lib or import you want to do inside webpack config file, it has to be using require.js and we can't use import because it's ECMA and ECMA is not allowed inside the webpack config file (we can use it elsewhere). Then we have mode which can be development and production but for now lets keep it none.
+
+We can delete the previous dist folder and run the command again. Inside index.html, we can refer to the bundle.js file and see application is working fine. We have also added a npm script under package.json => with name build so we can run  it with npm directly.
+
+
+
+
