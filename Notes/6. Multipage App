@@ -1,0 +1,29 @@
+In  multipage app, for every url, there will be a server side rendering and thus for every url, server will return separate js,css,html file and thus we need to see how to bundle this for every page. 
+
+See (18) => there are 2 components now => hello-world button and kiwi-image which are like 2 different pages and both component js files are returning class for these components. Now instead of one index.js file, we have 2 => kiwi.js and hello-world.js for each of the page and thus we can say we have 2 entrypoints...
+when kiwi url => kiwi index file which in turn has kiwi component and which in turn has kiwi css 
+when hello world url => hello world index file and its dependencies are rendered 
+
+=> To generate bundles for these => see webpack config for prod => entry is now an object which takes multiple KV which are entrypoint name and index file for it as value. Though we can give multiple output formats as well, but we can use [name] which is name of the entrypoint we gave above as key and thus for both, [name] will be substituted in js bundle name. Also [name] is used in MiniCssExtractPlugin for css file name. 
+
+On build, it will generate 2 js file, 2 css file but there will be only one html page index.html which will have 2 css links and 2 js files inside it. Now for multiple page application, we need 2 index htmls, one for kiwi and one for hello-world =>
+
+We can do this by configuring html webpack plugin => We can do this by copying the html webpack plugin object twice in plugins => We are adding additional field for filename which will now matter to us. Now there are 2 js files and how will hello-world html file webpack plugin know it has to take which one => this can be defined using chunks array and we can give what to include in this html file => we give entry point key in this and webpack will find js files and css generated while travelling dependency path of that entrypoint and put them in this html. 
+We can send values like title like before and template will be same for both since only variable value is changing.
+
+We can run this and see 2 html files. 
+
+Common dependencies for multiple pages 
+---------------------------------------
+Now if there is lodash lib used by both the kiwi and hello pages => it will be bundled in both case and thus for both pages, the size of the js bundle will be very big => See (19) => we have lodash in both kiwi and hello index files => if we generate build, js bundles for both pages will be big =>
+Go to webpack prod for doing optimisation => See that we have following:
+    optimization: {
+        splitChunks: {
+            chunks: 'all'  => we are saying that split all the chunks like lodash as separate js bundles. Now webpack instead of putting code of lodash in js bundle, will create separate bundle and refer that in html => when first html is rendered => lodash will be donwloaded and js bundle for it => on next page, only js bundle is downloaded since lodash reference wont download because same md5 file will be present that time in browser cache. 
+            minSize: 3000 => minSize that tells that if size of dependency bundle like lodash is more than 3000, then only split it => default value is 3kb = 3000 only
+        }
+    },  
+
+Development Env for multiple page apps
+--------------------------------------
+See dev webpack config => added entrypoints like prod, added output distinct names using [name] and not using content hash since no browser caching in this case. Html webpack plugin is configured like prod. => When we run our dev npm script, it will start at localhost:9000 and we can see our UI like localhost:9000/kiwi.html and for other page add name of that html file. See(19) for this.

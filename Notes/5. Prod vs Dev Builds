@@ -1,0 +1,36 @@
+Now development bundle and production bundle are usaully different in sense that we want prod bundle to be as small as possible to serve it in fast way but in development bundle we might want to have extra things. We have seen the mode property in webpack config which takes 3 values => 'none', 'production' and 'development'
+
+We can see what diff optimisations are done in diff modes => https://webpack.js.org/configuration/mode/ => see options on this page => In prod or dev case, it sets the process.env.NODE_ENV value. 
+
+1. We can see the list of plugins in prod is much bigger and this is because these plugins do extra optimisations for production. 
+2. In development mode, the source mappings are added but not in prod mode i.e. let throw a error in index.js file like xyz(); => calling function that dont exist. Now if run in production mode, you will see error pointing to bundle.js line which is difficult to understand. But if you throw same error in dev mode, and click error line, it will take you to exact source code line and this is what makes dev bundle bigger as well because it includes source mappings.
+
+Managing webpack for prod and dev mode 
+--------------------------------------
+Now how to mention diff modes in webpack config => we will create diff files for prod and dev => see (c16) => In production, we change the mode and also remove the Terser plugin since it is already present in prod mode by webpack. In developemnt, we can remove content hash from file names since browser caching not in dev mode + remove the Terser plugin as minified file not needed locally as it increase build time for us. Similary not need for css separate file generation in dev mode and thus use style-loader like before. See package.json how we have configured npm scripts for these by passing the config file to the webpack command. 
+
+Webpack dev server
+------------------
+In (c17) => Now for faster development and not doing the build everytime (normal opening index.html wont work since browser wont understand import of css etc) => we can use webpack dev server and webpack will run a server which will serve the build in dist/. But imp thing about this is, it will do hot changes as we change code, instantly without doing build, we can see the changes. 
+
+See package.json => for dev build, since we wont be doing build but hot changes, have changed the command to serve. In webpack config, we have to give details about this webpack server which is doing nothing except serving the dist =>  
+
+devServer: {
+        port: 9000, => port for dev server
+        static: {
+            directory: path.resolve(__dirname, './dist'), => where to find static js and css files
+        },
+        devMiddleware: {
+            index: 'index.html', => index file
+            writeToDisk: true => just keep it true for better working
+        }
+
+
+Note: In production mode, html webpack plugin will minify the output html file by default which you can avoid like:
+
+        new HtmlWebpackPlugin({
+            title: 'Hello world',
+            template: 'src/index.hbs',
+            description: 'some description',
+            minify: false
+        })

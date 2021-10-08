@@ -1,0 +1,39 @@
+Module Federation
+-------------------
+See (24) => Now we have a different applications all together and both having their own package.json and both having their own webpack configs. Module federation is new feature in webpack 5 which allows 2 different apps to share things => 2 teams can work on the diff apps, deploy them separately but still they can share components between them. 
+
+Module federation plugin is available in webpack 5 and it is out of the box and thus no need to install it via npm. 
+
+In 24 => button component is dynamically fetched at runtime from other app running on diff deployment and used inside other app. You can see in network tab that there is call to get remote.js of other app which contains this button component exposed by that app by generating remote.js bundle containing this component. So thus we can take component from another application through its server without listing that as a dependency => Now benefit of that is => if we make change to this button component to blue color and build and deploy, our app => All the other apps who are using this button component will not have blue button. Thik of skylab project like this, exposing components and we dont have to update skylab version => skylab people deploy their latest version and our app is using component from skylab latest deployment only and things will work fine with new changes everywhere.
+
+Microfrontends (See 25 for this)
+--------------
+Now on big websites like amazon there could be 100 of teams working on different parts of website like cart, payments, etc => these team dont do deploy of whole amazon website again and again but they are responsible for one page only => what they do is, they expose their page like cart as microfrontend and there is microfrontend for navbar which is just doing routing and for each navbar click like on cart, we have mentioned where to get that cart page which will be basically being served by different server i.e. cart server for cart microfrontend. 
+
+Now earlier this used to be done and managed by ourself but we can do this using Module federation. 
+
+Now we have 2 components inside separate folders => hello and kiwi and they are microfrontends, with their own express server, having their own package.json, their own webpack files which are exposing them resp to outside world based.
+
+Hello world micro frontend => we have heading, button and hello world page which is using both of these as components and we are not using hellopage component in index js file of this Microfrontend. => See the webpack file for this => if you see public path, we have changed to server url where this MF will run => in express server.js, we can see that static route also now points to '/' => and anyone hitting / for file will hit that route and get the css js files stored in dist folder and our html webpack plugin, we know it substitutes the src of js and css files in generated html as 'publicpath/generated file name' => it will hit localhost/filename and will get them. Anyone from outside if want these files can also hit on localhost/filename. Also we have added fileName inside this html webpack plugin for file we are gonna generate.
+Now see ModuleFederationPlugin object, we will come back to it later.
+
+Kiwi app => this is same as hello app except, server is running on diff port ofcourse and thus public path is of that server and anyone who want to get css js files of this app has to hit this server's url 
+
+Dashboard app => Again public path for this is express server localhost url and also we have added following to dev server:
+
+        historyApiFallback: {
+            index: 'dashboard.html'
+        }
+
+This is telling web pack dev server that anypath on localhost:9000/<anypath> should take to dashboard.html file only. Now we have navigation bar component which takes bar's items and item urls. If you see dashboard.js, we are passing navItem url like '/hello-world-page' and thus dashboard will change url to this on clickign navItem. And below you can see that we have if conditions where we are checking the url => when user click navItem, it will change url and if condition will execute => and inside that we are importing hello workld page from hellow world app => and since this import is from hello world server because this is that frontedn component, it is asynch call and hence the 'then' keyword. Now how is this import possible through webpack we will see in next section. But you can see when async call finish we get the component and we initilize it and then render in dashboard app and thus we see hello world page on hello world navItem click. 
+
+How is webpack configure for this MF sharing  => see webpack config of hello world and dashboard simulataneously => You will understand that inside helloworld webpack, Modulefederation plugin takes the name of the app + asking this plugin to create a file remote.js bundle inside dist which will have below listed components => To give components, we give class name which must be exported in js file and the path to the file where it is exported. Thus, remote.js inside dist of this will have bundled form of these components and path is given to maintain source mappings maybe so when class name of component is asked for, it knows where to find this class inside bundle using source mappings.
+
+Inside webpack plugin definition of dahsboard, we mention remotes from where the components will be used by dashboard => remote key can be anything and will be used inside dashboard.js while importing these components actually from these remote. The remote url in webpack config has: appName where it is present, url of server where this app is running and remote.js being bundle where component is bundled in. 
+
+Inside dashboard.js => we do import by appname/classname => remotes specified in webpack of dashboard only get remote.js file but it is during import we say what is needed inside remote.js of this app i.e by classname.
+
+
+
+
+
